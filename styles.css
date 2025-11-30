@@ -430,11 +430,117 @@ body {
     overflow: visible;
 }
 
-.fixed-traffic-light-container .traffic-light {
-    position: relative;
+/* Large Traffic Light Card */
+.traffic-light-card {
+    background-color: white;
+    border-radius: 16px;
+    padding: 32px 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     pointer-events: auto;
-    top: 0;
-    right: 0;
+}
+
+.traffic-light-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 24px;
+    text-align: center;
+    letter-spacing: 0.5px;
+}
+
+.traffic-light-large {
+    width: 80px;
+    height: 200px;
+    background-color: #1a1a1a;
+    border-radius: 12px;
+    border: 3px solid #0a0a0a;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 24px;
+}
+
+.traffic-light-light-large {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    background-color: #2a2a2a;
+    transition: all 0.3s;
+}
+
+.traffic-light-large[data-status="green"] .traffic-light-light-large.red {
+    background-color: #2a2a2a;
+    box-shadow: none;
+}
+
+.traffic-light-large[data-status="green"] .traffic-light-light-large.yellow {
+    background-color: #2a2a2a;
+    box-shadow: none;
+}
+
+.traffic-light-large[data-status="green"] .traffic-light-light-large.green {
+    background-color: #4caf50;
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.9), inset 0 0 12px rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.traffic-light-large[data-status="yellow"] .traffic-light-light-large.red {
+    background-color: #2a2a2a;
+    box-shadow: none;
+}
+
+.traffic-light-large[data-status="yellow"] .traffic-light-light-large.yellow {
+    background-color: #ffc107;
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.9), inset 0 0 12px rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.traffic-light-large[data-status="yellow"] .traffic-light-light-large.green {
+    background-color: #2a2a2a;
+    box-shadow: none;
+}
+
+.traffic-light-large[data-status="red"] .traffic-light-light-large.red {
+    background-color: #f44336;
+    box-shadow: 0 0 20px rgba(244, 67, 54, 0.9), inset 0 0 12px rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.traffic-light-large[data-status="red"] .traffic-light-light-large.yellow {
+    background-color: #2a2a2a;
+    box-shadow: none;
+}
+
+.traffic-light-large[data-status="red"] .traffic-light-light-large.green {
+    background-color: #2a2a2a;
+    box-shadow: none;
+}
+
+.traffic-light-level {
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.traffic-light-level.level-low {
+    color: #4caf50;
+}
+
+.traffic-light-level.level-medium {
+    color: #ff9800;
+}
+
+.traffic-light-level.level-high {
+    color: #f44336;
 }
 
 .modal-content {
@@ -547,6 +653,31 @@ body {
     
     .fixed-traffic-light-container {
         right: 20px;
+    }
+    
+    .traffic-light-card {
+        min-width: 150px;
+        padding: 24px 16px;
+    }
+    
+    .traffic-light-large {
+        width: 60px;
+        height: 150px;
+        padding: 8px;
+    }
+    
+    .traffic-light-light-large {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .traffic-light-card-title {
+        font-size: 14px;
+        margin-bottom: 16px;
+    }
+    
+    .traffic-light-level {
+        font-size: 16px;
     }
 }
 
