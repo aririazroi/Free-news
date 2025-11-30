@@ -153,6 +153,35 @@ function createTrafficLight(status, misleadingScore) {
     `;
 }
 
+// Create large traffic light card for article view
+function createLargeTrafficLightCard(status, misleadingScore) {
+    let levelText = '';
+    let levelClass = '';
+    
+    if (status === 'green') {
+        levelText = 'LOW';
+        levelClass = 'level-low';
+    } else if (status === 'yellow') {
+        levelText = 'MEDIUM';
+        levelClass = 'level-medium';
+    } else {
+        levelText = 'HIGH';
+        levelClass = 'level-high';
+    }
+    
+    return `
+        <div class="traffic-light-card">
+            <div class="traffic-light-card-title">Misleading Level</div>
+            <div class="traffic-light-large" data-status="${status}">
+                <div class="traffic-light-light-large red"></div>
+                <div class="traffic-light-light-large yellow"></div>
+                <div class="traffic-light-light-large green"></div>
+            </div>
+            <div class="traffic-light-level ${levelClass}">${levelText}</div>
+        </div>
+    `;
+}
+
 // Create Blindspot section
 function createBlindspotSection() {
     const blindspot = document.createElement('div');
@@ -210,8 +239,8 @@ function openArticle(articleId) {
         </div>
     `;
     
-    // Add fixed traffic light on the side
-    fixedTrafficLight.innerHTML = createTrafficLight(article.trafficLightStatus, article.misleadingScore);
+    // Add fixed traffic light card on the side
+    fixedTrafficLight.innerHTML = createLargeTrafficLightCard(article.trafficLightStatus, article.misleadingScore);
     
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
