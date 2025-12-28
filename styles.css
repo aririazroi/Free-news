@@ -35,52 +35,6 @@ body {
     color: white;
 }
 
-/* Navigation Bar */
-.navbar {
-    background-color: white;
-    border-bottom: 1px solid #e0e0e0;
-    padding: 12px 0;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.nav-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 24px;
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-}
-
-.nav-container::-webkit-scrollbar {
-    display: none;
-}
-
-.nav-item {
-    background-color: #f0f0f0;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 14px;
-    white-space: nowrap;
-    transition: background-color 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.nav-item:hover {
-    background-color: #e0e0e0;
-}
-
-.nav-icon {
-    font-size: 16px;
-}
-
 /* Main Container */
 .main-container {
     max-width: 1400px;
@@ -430,6 +384,17 @@ body {
     overflow: visible;
 }
 
+/* Ensure traffic light doesn't overlap modal content on medium screens */
+@media (max-width: 1200px) {
+    .fixed-traffic-light-container {
+        right: 20px;
+    }
+    
+    .modal-content {
+        margin-right: 220px; /* Make room for traffic light */
+    }
+}
+
 /* Large Traffic Light Card */
 .traffic-light-card {
     background-color: white;
@@ -569,6 +534,7 @@ body {
     justify-content: center;
     border-radius: 50%;
     transition: background-color 0.2s, color 0.2s;
+    z-index: 10; /* Ensure close button is above other content */
 }
 
 .close-button:hover {
@@ -582,6 +548,17 @@ body {
 
 .article-detail .article-image-container {
     margin-bottom: 24px;
+    position: relative;
+}
+
+/* Mobile traffic light container - hidden on desktop */
+.mobile-traffic-light-container {
+    display: none;
+}
+
+/* Desktop: hide mobile traffic light, show fixed one */
+.desktop-traffic-light-container {
+    display: block;
 }
 
 .article-detail .article-category {
@@ -619,16 +596,90 @@ body {
     .right-column {
         grid-column: 1 / -1;
     }
+    
+    /* Adjust traffic light position to prevent overlap on medium screens */
+    .fixed-traffic-light-container {
+        right: 20px;
+    }
+    
+    .modal-content {
+        margin-right: 220px; /* Make room for traffic light */
+    }
+}
+
+/* Move traffic light inside modal-content on smaller screens */
+@media (max-width: 900px) {
+    .fixed-traffic-light-container {
+        display: none; /* Hide fixed traffic light on mobile */
+    }
+    
+    .modal-content {
+        margin-right: auto; /* Reset margin from larger screens */
+    }
+    
+    /* Show mobile traffic light and make image container flex */
+    .mobile-traffic-light-container {
+        display: block;
+    }
+    
+    .article-detail .article-image-container {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        margin-top: 0; /* Reset default margin */
+        padding-top: 60px; /* Add padding to prevent overlap with close button */
+    }
+    
+    .article-detail .article-image-wrapper {
+        flex: 1;
+        min-width: 0; /* Allow image to shrink */
+        overflow: hidden;
+        border-radius: 8px;
+    }
+    
+    .article-detail .article-image-wrapper .article-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        object-fit: cover;
+    }
+    
+    .mobile-traffic-light-container {
+        flex-shrink: 0;
+        width: auto;
+    }
+    
+    .mobile-traffic-light-container .traffic-light-card {
+        min-width: 120px;
+        padding: 16px 12px;
+        margin: 0;
+    }
+    
+    .mobile-traffic-light-container .traffic-light-large {
+        width: 50px;
+        height: 130px;
+        padding: 6px;
+    }
+    
+    .mobile-traffic-light-container .traffic-light-light-large {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .mobile-traffic-light-container .traffic-light-card-title {
+        font-size: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .mobile-traffic-light-container .traffic-light-level {
+        font-size: 14px;
+    }
 }
 
 @media (max-width: 768px) {
     .main-container {
         grid-template-columns: 1fr;
         padding: 16px;
-    }
-    
-    .nav-container {
-        padding: 0 16px;
     }
     
     .banner-content {
@@ -649,10 +700,6 @@ body {
     
     .article-detail .article-content {
         font-size: 16px;
-    }
-    
-    .fixed-traffic-light-container {
-        right: 20px;
     }
     
     .traffic-light-card {
@@ -678,6 +725,77 @@ body {
     
     .traffic-light-level {
         font-size: 16px;
+    }
+
+    .article-modal {
+        padding: 24px 12px;
+    }
+
+    .modal-content {
+        padding: 24px 16px;
+        border-radius: 10px;
+    }
+
+    /* Mobile traffic light sizing adjustments for smaller screens */
+    .mobile-traffic-light-container .traffic-light-card {
+        min-width: 100px;
+        padding: 12px 10px;
+    }
+    
+    .mobile-traffic-light-container .traffic-light-large {
+        width: 45px;
+        height: 120px;
+        padding: 5px;
+    }
+    
+    .mobile-traffic-light-container .traffic-light-light-large {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .mobile-traffic-light-container .traffic-light-card-title {
+        font-size: 11px;
+        margin-bottom: 10px;
+    }
+    
+    .mobile-traffic-light-container .traffic-light-level {
+        font-size: 12px;
+    }
+    
+    .article-detail .article-image-container {
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .banner-content {
+        padding: 0 12px;
+    }
+
+    .main-container {
+        padding: 12px;
+        gap: 16px;
+    }
+
+    .article-modal {
+        padding: 16px 8px;
+    }
+
+    .modal-content {
+        padding: 20px 14px;
+    }
+
+    .close-button {
+        top: 12px;
+        right: 12px;
+    }
+
+    .article-detail .article-image-container {
+        padding-top: 50px; /* Adjust padding for smaller screens where close button is at top: 12px */
+    }
+
+    .article-detail .article-content {
+        font-size: 15px;
     }
 }
 
