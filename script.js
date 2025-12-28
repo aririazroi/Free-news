@@ -18,10 +18,8 @@ const Tracking = (function () {
         articleTimes: {},
         // articleId -> visibility start timestamp (ms) when currently visible
         currentlyVisible: {},
-        // articleId -> hover start timestamp (ms) when currently hovered
-        currentlyHovered: {},
-        // articleId -> hover statistics
-        articleHovers: {},
+        // articleId -> traffic light hover start timestamp (ms) when currently hovered
+        currentlyHoveredTrafficLight: {},
         // articleId -> traffic light hover statistics
         trafficLightHovers: {},
         // sequential event list
@@ -64,8 +62,8 @@ const Tracking = (function () {
         // Queue for Google Sheets (non-critical events will be batched)
         // Critical events (clicks, traffic light hovers) are sent immediately in their handlers
         const isCritical = event.type === 'click' || 
-                          (event.type === 'hover_start' && event.isTrafficLight) ||
-                          (event.type === 'hover_end' && event.isTrafficLight);
+                          event.type === 'traffic_light_hover_start' ||
+                          event.type === 'traffic_light_hover_end';
         
         // Only queue non-critical events here (critical events are handled separately)
         if (!isCritical) {
@@ -91,17 +89,6 @@ const Tracking = (function () {
             };
         }
         return state.articleTimes[articleId];
-    }
-
-    function ensureHoverRecord(articleId) {
-        if (!state.articleHovers[articleId]) {
-            state.articleHovers[articleId] = {
-                articleId,
-                hoverDurationMs: 0,
-                hoverCount: 0,
-            };
-        }
-        return state.articleHovers[articleId];
     }
 
     function ensureTrafficLightHoverRecord(articleId) {
@@ -269,34 +256,29 @@ const Tracking = (function () {
     }
 
     function setupHoverTracking() {
-        // Track hover on article elements
+        // Track hover ONLY on traffic light elements
         document.addEventListener('mouseenter', function(e) {
             const target = e.target;
             if (!target) return;
 
-            const articleEl = target.closest('[data-article-id]');
+            // Check if hovering on traffic light specifically
+            const trafficLightEl = target.closest('.traffic-light, .traffic-light-card, .traffic-light-large');
+            if (!trafficLightEl) return;
+
+            // Find the associated article
+            const articleEl = trafficLightEl.closest('[data-article-id]');
             if (!articleEl) return;
 
             const articleId = articleEl.getAttribute('data-article-id');
-            if (!articleId || state.currentlyHovered[articleId]) return;
-
-            // Check if hovering on traffic light specifically
-            const isTrafficLight = target.classList.contains('traffic-light') || 
-                                   target.closest('.traffic-light') ||
-                                   target.closest('.traffic-light-card') ||
-                                   target.closest('.traffic-light-large');
+            if (!articleId || state.currentlyHoveredTrafficLight[articleId]) return;
 
             const hoverStart = nowMs();
-            state.currentlyHovered[articleId] = {
-                start: hoverStart,
-                isTrafficLight: isTrafficLight,
-            };
+            state.currentlyHoveredTrafficLight[articleId] = hoverStart;
 
             const metadata = getArticleMetadata(articleId);
             const hoverEvent = {
-                type: 'hover_start',
+                type: 'traffic_light_hover_start',
                 articleId,
-                isTrafficLight: isTrafficLight,
             };
 
             if (metadata) {
@@ -307,7 +289,7 @@ const Tracking = (function () {
             logEvent(hoverEvent);
 
             // Send traffic light hovers immediately
-            if (CONFIG.sendCriticalEventsImmediately && isTrafficLight) {
+            if (CONFIG.sendCriticalEventsImmediately) {
                 sendEventToGoogleSheets(hoverEvent, true);
             }
         }, true);
@@ -316,34 +298,31 @@ const Tracking = (function () {
             const target = e.target;
             if (!target) return;
 
-            const articleEl = target.closest('[data-article-id]');
+            // Check if leaving traffic light
+            const trafficLightEl = target.closest('.traffic-light, .traffic-light-card, .traffic-light-large');
+            if (!trafficLightEl) return;
+
+            // Find the associated article
+            const articleEl = trafficLightEl.closest('[data-article-id]');
             if (!articleEl) return;
 
             const articleId = articleEl.getAttribute('data-article-id');
             if (!articleId) return;
 
-            const hoverData = state.currentlyHovered[articleId];
-            if (!hoverData) return;
+            const hoverStart = state.currentlyHoveredTrafficLight[articleId];
+            if (!hoverStart) return;
 
-            const hoverDuration = nowMs() - hoverData.start;
-            const isTrafficLight = hoverData.isTrafficLight;
+            const hoverDuration = nowMs() - hoverStart;
 
             // Update hover statistics
-            if (isTrafficLight) {
-                const rec = ensureTrafficLightHoverRecord(articleId);
-                rec.trafficLightHoverMs += hoverDuration;
-                rec.trafficLightHoverCount += 1;
-            } else {
-                const rec = ensureHoverRecord(articleId);
-                rec.hoverDurationMs += hoverDuration;
-                rec.hoverCount += 1;
-            }
+            const rec = ensureTrafficLightHoverRecord(articleId);
+            rec.trafficLightHoverMs += hoverDuration;
+            rec.trafficLightHoverCount += 1;
 
             const metadata = getArticleMetadata(articleId);
             const hoverEvent = {
-                type: 'hover_end',
+                type: 'traffic_light_hover_end',
                 articleId,
-                isTrafficLight: isTrafficLight,
                 hoverDurationMs: hoverDuration,
             };
 
@@ -355,11 +334,11 @@ const Tracking = (function () {
             logEvent(hoverEvent);
 
             // Send traffic light hovers immediately
-            if (CONFIG.sendCriticalEventsImmediately && isTrafficLight) {
+            if (CONFIG.sendCriticalEventsImmediately) {
                 sendEventToGoogleSheets(hoverEvent, true);
             }
 
-            delete state.currentlyHovered[articleId];
+            delete state.currentlyHoveredTrafficLight[articleId];
         }, true);
     }
 
@@ -479,7 +458,6 @@ const Tracking = (function () {
                 trafficLightStatus: getArticleMetadata(rec.articleId)?.trafficLightStatus,
                 misleadingScore: getArticleMetadata(rec.articleId)?.misleadingScore,
             })),
-            articleHovers: Object.values(state.articleHovers),
             trafficLightHovers: Object.values(state.trafficLightHovers),
         };
 
@@ -495,23 +473,16 @@ const Tracking = (function () {
         // Stop any ongoing views and hovers
         pauseAllVisibility('session_end');
         
-        // End any ongoing hovers
-        Object.keys(state.currentlyHovered).forEach((articleId) => {
-            const hoverData = state.currentlyHovered[articleId];
-            const hoverDuration = nowMs() - hoverData.start;
-            const isTrafficLight = hoverData.isTrafficLight;
+        // End any ongoing traffic light hovers
+        Object.keys(state.currentlyHoveredTrafficLight).forEach((articleId) => {
+            const hoverStart = state.currentlyHoveredTrafficLight[articleId];
+            const hoverDuration = nowMs() - hoverStart;
 
-            if (isTrafficLight) {
-                const rec = ensureTrafficLightHoverRecord(articleId);
-                rec.trafficLightHoverMs += hoverDuration;
-                rec.trafficLightHoverCount += 1;
-            } else {
-                const rec = ensureHoverRecord(articleId);
-                rec.hoverDurationMs += hoverDuration;
-                rec.hoverCount += 1;
-            }
+            const rec = ensureTrafficLightHoverRecord(articleId);
+            rec.trafficLightHoverMs += hoverDuration;
+            rec.trafficLightHoverCount += 1;
 
-            delete state.currentlyHovered[articleId];
+            delete state.currentlyHoveredTrafficLight[articleId];
         });
 
         state.sessionEnd = nowMs();
@@ -529,7 +500,6 @@ const Tracking = (function () {
                 trafficLightStatus: getArticleMetadata(rec.articleId)?.trafficLightStatus,
                 misleadingScore: getArticleMetadata(rec.articleId)?.misleadingScore,
             })),
-            articleHovers: Object.values(state.articleHovers),
             trafficLightHovers: Object.values(state.trafficLightHovers),
         };
 
